@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css"
+        integrity="sha512-NhSC1YmyruXifcj/KFRWoC561YpHpc5Jtzgvbuzx5VozKpWvQ+4nXhPdFgmx8xqexRcpAglTj9sIBWINXa8x5w=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;500;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="/assets/css/global.css">
+    <link rel="stylesheet" href="/assets/css/pokedex.css">
+</head>
+
+<body>
+    <div id="pokemon-container"></div>
+</body>
+<script>
+    const pokeApi = {}
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get('id');
+    // console.log(id);
+    //função para procurar o pokemon
+    async function buscarPokemonPorId(id) {
+        try {
+            const url = `https://pokeapi.co/api/v2/pokemon/${id}/`;
+
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                throw new Error(`Erro na solicitação: ${response.status}`);
+            }
+
+            const pokemon = await response.json();
+            return pokemon;
+
+        } catch (error) {
+            // Tratando erros
+            console.error(error);
+            throw error;
+        }
+    }
+    function convertPokeApiDetailToPokemon(pokeDetail) {
+        const pokemon = new Pokemon()
+        pokemon.number = pokeDetail.id
+        pokemon.name = pokeDetail.name
+
+        const types = pokeDetail.types.map((typeSlot) => typeSlot.type.name)
+        const [type] = types
+
+        pokemon.types = types
+        pokemon.type = type
+
+        pokemon.photo = pokeDetail.sprites.other.dream_world.front_default
+
+        return pokemon
+    }
+    function convertPokemonToObject(pokemon) {
+        return `
+            <div class="pokemon ${pokemon.type}">
+                <span class="number">#${pokemon.number}</span>
+                <span class="name">${pokemon.name}</span>
+
+                <div class="detail">
+                    <ol class="types">
+                        ${pokemon.types.map((type) => `<li class="type ${type}">${type}</li>`).join('')}
+                    </ol>
+
+                    <img src="${pokemon.photo}"
+                        alt="${pokemon.name}">
+                </div>
+            </div>
+    `
+    }
+
+    buscarPokemonPorId(id)
+        .then(pokemon => {
+            const pokemonObj = convertPokeApiDetailToPokemon(pokemon);
+            const pokemonHtml = convertPokemonToObject(pokemonObj);
+            const pokemonContainer = document.getElementById("pokemon-container");
+            pokemonContainer.innerHTML = pokemonHtml;
+        })
+        .catch(error => {
+            console.error(error);
+        });
+
+</script>
+<script src="/assets/js/pokemon-model.js"></script>
+
+</html>
